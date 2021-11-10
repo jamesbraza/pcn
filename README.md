@@ -17,12 +17,14 @@ If you find our work useful for your research, please cite:
 
 ### Usage
 #### 1) Prerequisite
-1. Install dependencies via `pip3 install -r requirments.txt`.
-2. Follow [this guide](http://open3d.org/docs/getting_started.html) to install Open3D for point cloud I/O.
-3. Build point cloud distance ops by running `make` under `pc_distance`. Make sure the paths in makefile are correct.
-3. Download trained models from [Google Drive](https://drive.google.com/open?id=1M_lJN14Ac1RtPtEQxNlCV9e8pom3U6Pa).
 
-This code is built using Tensorflow 1.12 with CUDA 9.0 and tested on Ubuntu 16.04 with Python 3.5.
+1. Install Python 3.7.
+2. Install dependencies to system via `pip3 install -r requirments.txt`.
+3. Follow [this guide](http://open3d.org/docs/getting_started.html) to install Open3D for point cloud I/O.
+4. Build point cloud distance ops by running `make` under `pc_distance`. Make sure the paths in makefile are correct.
+5. Download trained models from [Google Drive](https://drive.google.com/open?id=1M_lJN14Ac1RtPtEQxNlCV9e8pom3U6Pa).
+
+This code is built using Tensorflow 1.15 with CUDA 11.0 and tested on Debian 10.
 
 #### 2) Demo
 Run `python3 demo.py`. Use `--input_path` option to switch between the input examples in `demo_data`.
