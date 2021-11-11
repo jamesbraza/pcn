@@ -1,6 +1,6 @@
 import os
 from enum import Enum
-from os.path import basename, expanduser, join
+from os.path import join
 from typing import Iterator, List, Optional, Tuple
 
 import numpy as np
@@ -12,8 +12,8 @@ from shared.vis import plot_xyz
 from data.shapenet import SynSet
 
 # Feel free to change this
-PATH_TO_DATASET_FOLDER: str = expanduser(
-    "~/Downloads/PointCloud/ShapeNet/ShapeNet2048k/shapenet"
+ABS_PATH_TO_DATASET_FOLDER: str = join(
+    os.path.dirname(os.path.abspath(__file__)), "completion3d_2048k"
 )
 
 
@@ -41,7 +41,7 @@ class C3DShapeNetDataset:
         cloud_type: CloudType,
         synset: SynSet,
         filename: str,
-        path_to_dataset_dir: str = PATH_TO_DATASET_FOLDER,
+        path_to_dataset_dir: str = ABS_PATH_TO_DATASET_FOLDER,
     ) -> str:
         """Make a filepath to a point cloud in the dataset."""
         if filename[-3] != ".h5":
@@ -59,7 +59,7 @@ class C3DShapeNetDataset:
         data_subset: DataSubset,
         cloud_type: CloudType = CloudType.PARTIAL,
         synset: Optional[SynSet] = None,
-        path_to_dataset_dir: str = PATH_TO_DATASET_FOLDER,
+        path_to_dataset_dir: str = ABS_PATH_TO_DATASET_FOLDER,
     ) -> Iterator[str]:
         """
         Make an iterator for point clouds in the dataset.
@@ -94,7 +94,7 @@ class C3DShapeNetDataset:
         data_subset: DataSubset,
         cloud_type: Optional[CloudType] = None,
         synset: Optional[SynSet] = None,
-        path_to_dataset_dir: str = PATH_TO_DATASET_FOLDER,
+        path_to_dataset_dir: str = ABS_PATH_TO_DATASET_FOLDER,
     ) -> int:
         """Get the number of files in some subset of the data."""
         dir_path: str = join(path_to_dataset_dir, data_subset.value)
@@ -121,7 +121,7 @@ def save_figures(
         if not (i < num_figures):
             break
         point_cloud: np.ndarray = load_h5(pc_filepath)
-        figures.append((basename(pc_filepath), plot_xyz(point_cloud)))
+        figures.append((os.path.basename(pc_filepath), plot_xyz(point_cloud)))
 
     for name, fig in figures:
         fig.savefig(f"figure_{name.split('.')[0]}.png")

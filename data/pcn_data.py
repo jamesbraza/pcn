@@ -1,5 +1,6 @@
+import os
 from enum import Enum
-from os.path import expanduser, isdir, join
+from os.path import join
 from typing import NamedTuple
 
 import lmdb
@@ -13,7 +14,9 @@ from tensorpack.utils.serialize import loads_msgpack
 from data.shapenet import SynSet
 
 # Feel free to change this
-PATH_TO_DATASET_FOLDER: str = expanduser("~/Downloads/PointCloud/PCN/shapenet_car")
+ABS_PATH_TO_DATASET_FOLDER: str = join(
+    os.path.dirname(os.path.abspath(__file__)), "pcn"
+)
 
 
 class DataSubset(Enum):
@@ -43,7 +46,7 @@ class PCNShapeNetDataset:
     @staticmethod
     def get_lmdb_filepath(
         data_subset: DataSubset = DataSubset.TRAIN,
-        path_to_dataset_dir: str = PATH_TO_DATASET_FOLDER,
+        path_to_dataset_dir: str = ABS_PATH_TO_DATASET_FOLDER,
     ) -> str:
         """Get the filepath."""
         return join(path_to_dataset_dir, f"{data_subset.value}.lmdb")
@@ -71,7 +74,7 @@ def dataflow_interaction(lmdb_path: str) -> None:
 
 def direct_interaction(lmdb_path: str) -> None:
     """Directly interact with the LMDB files."""
-    lmdb_env = lmdb.open(lmdb_path, subdir=isdir(lmdb_path), readonly=True)
+    lmdb_env = lmdb.open(lmdb_path, subdir=os.path.isdir(lmdb_path), readonly=True)
     with lmdb_env.begin() as lmdb_transaction:
         lmdb_cursor = lmdb_transaction.cursor()
         for _, val in lmdb_cursor:
