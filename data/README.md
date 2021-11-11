@@ -1,5 +1,15 @@
 # Datasets
 
+## Data Set Up
+
+I recommend making soft links from here to the actual data directories:
+
+```bash
+ln -s /abs/path/to/pcn_data pcn
+ln -s /abs/path/to/completion3d_2048k_data completion3d_2048k
+ln -s /abs/path/to/completion3d_16384k_data completion3d_16384k
+```
+
 ## PCN
 
 This directory is used to store data, trained models and results files downloaded from this [Google Drive folder](https://drive.google.com/open?id=1Af9igOStb6O9YHwjYHOwR0qW4uP3zLA6), which is organized as follows:
