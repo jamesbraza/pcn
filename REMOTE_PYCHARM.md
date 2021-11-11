@@ -23,8 +23,13 @@ The following configuration was done using:
         - Connection Parameters: (leave as default)
     - Root path: \*your server's home directory\*
     - Everything else: (leave as default)
+4. Now set up [Mappings][5] ([other info here][6]) and a remote interpreter
+
+Good luck to you!  These things always have hiccups.
 
 [1]: https://github.com/cs231n/gcloud#getting-a-static-ip-address
 [2]: https://cloud.google.com/compute/docs/ip-addresses/reserve-static-external-ip-address#reserve_new_static
 [3]: https://www.siteyaar.com/google-cloud-ssh/#mac
 [4]: https://www.jetbrains.com/help/pycharm/creating-a-remote-server-configuration.html
+[5]: https://www.jetbrains.com/help/pycharm/deployment-mappings-tab.html
+[6]: https://www.jetbrains.com/help/pycharm/creating-a-remote-server-configuration.html#mapping
