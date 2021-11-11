@@ -45,7 +45,7 @@ class PCNShapeNetDataset:
         data_subset: DataSubset = DataSubset.TRAIN,
         path_to_dataset_dir: str = PATH_TO_DATASET_FOLDER,
     ) -> str:
-        """Get the filepath"""
+        """Get the filepath."""
         return join(path_to_dataset_dir, f"{data_subset.value}.lmdb")
 
     @staticmethod
@@ -74,7 +74,7 @@ def direct_interaction(lmdb_path: str) -> None:
     lmdb_env = lmdb.open(lmdb_path, subdir=isdir(lmdb_path), readonly=True)
     with lmdb_env.begin() as lmdb_transaction:
         lmdb_cursor = lmdb_transaction.cursor()
-        for key, val in lmdb_cursor:
+        for _, val in lmdb_cursor:
             data_buffer: list = loads_msgpack(val)
             data_entry: PointCloudDataEntry = (
                 PCNShapeNetDataset.extract_from_data_buffer(data_buffer)
