@@ -53,3 +53,4 @@ repos:
           - setup.cfg
         additional_dependencies:
           - flake8-docstrings
+          - flake8-bugbear
