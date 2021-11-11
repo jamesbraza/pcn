@@ -22,6 +22,8 @@ The following configuration was done using:
         - Auth type: OpenSSH config and authentication agent
         - Connection Parameters: (leave as default)
     - Root path: \*your server's home directory\*
+    - Uncheck "Visible only for this project"
+        - Necessary for remote interpreter
     - Everything else: (leave as default)
 4. Now set up [Mappings][5] ([other info here][6]) and a remote interpreter
 
