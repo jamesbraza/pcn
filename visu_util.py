@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+from copy import deepcopy
 from typing import List, Optional, Sequence
 
 import numpy as np
@@ -80,5 +81,9 @@ def plot_pcd_three_views(
 def show_pcd(points: np.ndarray) -> None:
     """Visualize a point cloud in an interactive window."""
     pcd = o3d.geometry.PointCloud()
-    pcd.points = o3d.utility.Vector3dVector(points)
+    try:
+        pcd.points = o3d.utility.Vector3dVector(points)
+    except ValueError:
+        # SEE: https://github.com/isl-org/Open3D/issues/2557#issuecomment-850853083
+        pcd.points = o3d.utility.Vector3dVector(deepcopy(points))
     o3d.visualization.draw_geometries([pcd])
