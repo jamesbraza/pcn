@@ -1,0 +1,56 @@
+repos:
+  - repo: "https://github.com/pre-commit/pre-commit-hooks"
+    rev: v4.0.1
+    hooks:
+      - id: check-docstring-first
+        description: Checks for a common error of placing code before the docstring.
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: check-toml
+      - id: check-yaml
+      - id: end-of-file-fixer
+        description: Makes sure files end in a newline and only a newline.
+      - id: mixed-line-ending
+        description: >-
+          Replaces mixed line ending automatically with the most frequent line
+          ending.
+      - id: pretty-format-json
+        args: ["--autofix", "--no-sort-keys"]
+      - id: requirements-txt-fixer
+        description: >-
+          Sorts entries in requirements.txt and removes incorrect entry for
+          `pkg-resources==0.0.0`.
+      - id: trailing-whitespace
+  - repo: "https://github.com/myint/docformatter"
+    rev: v1.4
+    hooks:
+      - id: docformatter
+        name: Autoformat docstrings
+        args:
+          - "--in-place"
+          - "--pre-summary-newline"
+          - "--wrap-summaries=0"
+          - "--wrap-descriptions=0"
+  - repo: "https://github.com/psf/black"
+    rev: 21.10b0
+    hooks:
+      - id: black
+  - repo: "https://github.com/pycqa/isort"
+    rev: 5.10.1
+    hooks:
+      - id: isort
+        args:
+          - "--settings-path"
+          - pyproject.toml
+        additional_dependencies:
+          - toml
+  - repo: "https://gitlab.com/pycqa/flake8"
+    rev: 3.9.2
+    hooks:
+      - id: flake8
+        args:
+          - "--config"
+          - setup.cfg
+        additional_dependencies:
+          - flake8-docstrings
+          - flake8-bugbear

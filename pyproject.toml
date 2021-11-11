@@ -1,0 +1,5 @@
+[tool.isort]
+# SEE: https://pycqa.github.io/isort/docs/configuration/options/
+
+# profiles allow easy interoperability with common projects and code styles
+profile = "black"
