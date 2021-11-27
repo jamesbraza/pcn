@@ -5,9 +5,13 @@
 I recommend making soft links from here to the actual data directories:
 
 ```bash
+# PCN dataset (.lmdb files)
 ln -s /abs/path/to/pcn_data pcn
+# Completion3D datasets (.h5 files)
 ln -s /abs/path/to/completion3d_2048k_data completion3d_2048k
 ln -s /abs/path/to/completion3d_16384k_data completion3d_16384k
+# Trained models
+ln -s /abs/path/to/trained_models trained_models
 ```
 
 ## PCN
