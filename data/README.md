@@ -63,4 +63,4 @@ The Python modules `shapenet.py` and `pcn_data.py` contain relevant starter code
 
 ## Completion3D
 
-The Python modules `shapenet.py` and `completion3d_data.py` contain relevant starter code.
+The Python modules `pcn_data.py` and `completion3d_data.py` contain relevant starter code.
