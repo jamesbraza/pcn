@@ -1,5 +1,5 @@
-'''
-MIT License
+"""
+MIT License.
 
 Copyright (c) 2018 Wentao Yuan
 
@@ -20,22 +20,25 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-'''
+"""
 
 import numpy as np
 import tensorflow as tf
 from tensorpack import dataflow
 
 
-def resample_pcd(pcd, n):
-    """Drop or duplicate points so that pcd has exactly n points"""
-    idx = np.random.permutation(pcd.shape[0])
+def resample_pcd(pcd: np.ndarray, n: int) -> np.ndarray:
+    """Drop or duplicate points so that the input point cloud has exactly n points."""
+    num_points: int = pcd.shape[0]
+    idx = np.random.permutation(num_points)  # Indices to keep
     if idx.shape[0] < n:
-        idx = np.concatenate([idx, np.random.randint(pcd.shape[0], size=n-pcd.shape[0])])
+        # If we aren't keeping enough indices, randomly select more
+        idx = np.concatenate([idx, np.random.randint(num_points, size=n - num_points)])
+    # Drop excess points, returning the exact amount requested
     return pcd[idx[:n]]
 
 
-class PreprocessData(dataflow.ProxyDataFlow):
+class PreprocessData(dataflow.ProxyDataFlow):  # noqa: D101
     def __init__(self, ds, input_size, output_size):
         super(PreprocessData, self).__init__(ds)
         self.input_size = input_size
@@ -48,8 +51,10 @@ class PreprocessData(dataflow.ProxyDataFlow):
             yield id, input, gt
 
 
-class BatchData(dataflow.ProxyDataFlow):
-    def __init__(self, ds, batch_size, input_size, gt_size, remainder=False, use_list=False):
+class BatchData(dataflow.ProxyDataFlow):  # noqa: D101
+    def __init__(
+        self, ds, batch_size, input_size, gt_size, remainder=False, use_list=False
+    ):
         super(BatchData, self).__init__(ds)
         self.batch_size = batch_size
         self.input_size = input_size
@@ -76,20 +81,32 @@ class BatchData(dataflow.ProxyDataFlow):
             yield self._aggregate_batch(holder, self.use_list)
 
     def _aggregate_batch(self, data_holder, use_list=False):
-        ''' Concatenate input points along the 0-th dimension
-            Stack all other data along the 0-th dimension
-        '''
+        """Concatenate input points along the 0-th dimension Stack all other data along the 0-th dimension."""
         ids = np.stack([x[0] for x in data_holder])
-        inputs = [resample_pcd(x[1], self.input_size) if x[1].shape[0] > self.input_size else x[1]
-            for x in data_holder]
-        inputs = np.expand_dims(np.concatenate([x for x in inputs]), 0).astype(np.float32)
-        npts = np.stack([x[1].shape[0] if x[1].shape[0] < self.input_size else self.input_size
-            for x in data_holder]).astype(np.int32)
-        gts = np.stack([resample_pcd(x[2], self.gt_size) for x in data_holder]).astype(np.float32)
+        inputs = [
+            resample_pcd(x[1], self.input_size)
+            if x[1].shape[0] > self.input_size
+            else x[1]
+            for x in data_holder
+        ]
+        inputs = np.expand_dims(np.concatenate([x for x in inputs]), 0).astype(
+            np.float32
+        )
+        npts = np.stack(
+            [
+                x[1].shape[0] if x[1].shape[0] < self.input_size else self.input_size
+                for x in data_holder
+            ]
+        ).astype(np.int32)
+        gts = np.stack([resample_pcd(x[2], self.gt_size) for x in data_holder]).astype(
+            np.float32
+        )
         return ids, inputs, npts, gts
 
 
-def lmdb_dataflow(lmdb_path, batch_size, input_size, output_size, is_training, test_speed=False):
+def lmdb_dataflow(
+    lmdb_path, batch_size, input_size, output_size, is_training, test_speed=False
+):
     df = dataflow.LMDBSerializer.load(lmdb_path, shuffle=False)
     size = df.size()
     if is_training:
@@ -106,12 +123,18 @@ def lmdb_dataflow(lmdb_path, batch_size, input_size, output_size, is_training, t
 
 
 def get_queued_data(generator, dtypes, shapes, queue_capacity=10):
-    assert len(dtypes) == len(shapes), 'dtypes and shapes must have the same length'
+    assert len(dtypes) == len(shapes), "dtypes and shapes must have the same length"
     queue = tf.FIFOQueue(queue_capacity, dtypes, shapes)
-    placeholders = [tf.placeholder(dtype, shape) for dtype, shape in zip(dtypes, shapes)]
+    placeholders = [
+        tf.placeholder(dtype, shape) for dtype, shape in zip(dtypes, shapes)
+    ]
     enqueue_op = queue.enqueue(placeholders)
     close_op = queue.close(cancel_pending_enqueues=True)
-    feed_fn = lambda: {placeholder: value for placeholder, value in zip(placeholders, next(generator))}
-    queue_runner = tf.contrib.training.FeedingQueueRunner(queue, [enqueue_op], close_op, feed_fns=[feed_fn])
+    feed_fn = lambda: {  # noqa: E731
+        placeholder: value for placeholder, value in zip(placeholders, next(generator))
+    }
+    queue_runner = tf.contrib.training.FeedingQueueRunner(
+        queue, [enqueue_op], close_op, feed_fns=[feed_fn]
+    )
     tf.train.add_queue_runner(queue_runner)
     return queue.dequeue()
