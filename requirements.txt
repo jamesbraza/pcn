@@ -6,3 +6,4 @@ open3d
 pyarrow  # Couldn't match 0.10.0
 tensorflow>=1.12.1,<2
 tensorpack==0.8.9
+termcolor
