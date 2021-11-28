@@ -59,8 +59,6 @@ data
 
 `results` contains outputs (completed point clouds) of the trained models on the KITTI sequence and the ShapeNet test set.
 
-The Python modules `shapenet.py` and `pcn_data.py` contain relevant starter code.
-
 ## Completion3D
 
 The Python modules `pcn_data.py` and `completion3d_data.py` contain relevant starter code.
