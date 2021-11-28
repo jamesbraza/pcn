@@ -24,7 +24,7 @@ SOFTWARE.
 
 import numpy as np
 import tensorflow as tf
-from tensorpack import dataflow
+from tensorpack import DataFlow, dataflow
 
 
 def resample_pcd(pcd: np.ndarray, n: int) -> np.ndarray:
@@ -51,7 +51,14 @@ class PreprocessData(dataflow.ProxyDataFlow):  # noqa: D101
             yield id, input, gt
 
 
-class BatchData(dataflow.ProxyDataFlow):  # noqa: D101
+class BatchData(dataflow.ProxyDataFlow):
+    """
+    Modified version of tensorpack.dataflow.BatchData.
+
+    Why does this exist?  It seems the author didn't want to deal with
+    subclassing complexity, so just copied and the manually "overrode".
+    """
+
     def __init__(
         self, ds, batch_size, input_size, gt_size, remainder=False, use_list=False
     ):
@@ -105,9 +112,14 @@ class BatchData(dataflow.ProxyDataFlow):  # noqa: D101
 
 
 def lmdb_dataflow(
-    lmdb_path, batch_size, input_size, output_size, is_training, test_speed=False
+    lmdb_path,
+    batch_size: int,
+    input_size: int,
+    output_size: int,
+    is_training: bool,
+    test_speed: bool = False,
 ):
-    df = dataflow.LMDBSerializer.load(lmdb_path, shuffle=False)
+    df: DataFlow = dataflow.LMDBSerializer.load(lmdb_path, shuffle=False)
     size = df.size()
     if is_training:
         df = dataflow.LocallyShuffleData(df, buffer_size=2000)
