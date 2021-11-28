@@ -1,5 +1,5 @@
-'''
-MIT License
+"""
+MIT License.
 
 Copyright (c) 2018 Wentao Yuan
 
@@ -20,18 +20,18 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-'''
+"""
 
 import numpy as np
 import open3d as o3d
 
 
-def read_pcd(filename):
+def read_pcd(filename: str) -> np.ndarray:
     pcd = o3d.io.read_point_cloud(filename)
     return np.array(pcd.points)
 
 
-def save_pcd(filename, points):
+def save_pcd(filename: str, points: np.ndarray) -> None:
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(points)
     o3d.io.write_point_cloud(filename, pcd)

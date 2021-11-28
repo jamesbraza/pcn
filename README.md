@@ -24,7 +24,7 @@ If you find our work useful for your research, please cite:
 4. Build point cloud distance ops by running `make` under `pc_distance`. Make sure the paths in makefile are correct.
 5. Download trained models from [Google Drive](https://drive.google.com/open?id=1M_lJN14Ac1RtPtEQxNlCV9e8pom3U6Pa).
 
-This code is built using Tensorflow 1.15 with CUDA 11.0 and tested on Debian 10.
+This code is built using TensorFlow 1.15 with CUDA 11.0 and tested on Debian 10.
 
 #### 2) Demo
 Run `python3 demo.py`. Use `--input_path` option to switch between the input examples in `demo_data`.
