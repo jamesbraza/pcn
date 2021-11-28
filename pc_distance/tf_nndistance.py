@@ -10,9 +10,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 nn_distance_module = tf.load_op_library(os.path.join(BASE_DIR, "tf_nndistance_so.so"))
 
 
-def nn_distance(
-    xyz1: np.ndarray, xyz2: np.ndarray
-) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
+def nn_distance(xyz1: Tensor, xyz2: Tensor) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
     """
     Computes the distance of nearest neighbors for a pair of point clouds
     input: xyz1: (batch_size,#points_1,3)  the first point cloud

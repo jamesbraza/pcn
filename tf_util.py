@@ -22,7 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import numpy as np
 import tensorflow as tf
+from tensorflow_core import Tensor
 
 from pc_distance import tf_approxmatch, tf_nndistance
 
@@ -79,8 +81,8 @@ def point_unpool(inputs, npts):
     return tf.concat(outputs, axis=1)
 
 
-def chamfer(pcd1, pcd2):
-    dist1, _, dist2, _ = tf_nndistance.nn_distance(pcd1, pcd2)
+def chamfer(pcd1: Tensor, pcd2: Tensor) -> Tensor:
+    dist1, _, dist2, __ = tf_nndistance.nn_distance(pcd1, pcd2)
     dist1 = tf.reduce_mean(tf.sqrt(dist1))
     dist2 = tf.reduce_mean(tf.sqrt(dist2))
     return (dist1 + dist2) / 2
