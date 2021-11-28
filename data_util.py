@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from typing import Tuple
 
 import numpy as np
 import tensorflow as tf
@@ -118,7 +119,7 @@ def lmdb_dataflow(
     output_size: int,
     is_training: bool,
     test_speed: bool = False,
-):
+) -> Tuple[DataFlow, int]:
     df: DataFlow = dataflow.LMDBSerializer.load(lmdb_path, shuffle=False)
     size = df.size()
     if is_training:
