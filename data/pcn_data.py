@@ -17,6 +17,7 @@ from data.shapenet import SynSet
 ABS_PATH_TO_DATASET_FOLDER: str = join(
     os.path.dirname(os.path.abspath(__file__)), "pcn"
 )
+NUM_GT_POINTS: int = 16_384
 
 
 class DataSubset(Enum):
