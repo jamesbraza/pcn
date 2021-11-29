@@ -28,6 +28,7 @@ from typing import List, Optional, Sequence
 import numpy as np
 import open3d as o3d
 from matplotlib import pyplot as plt
+from matplotlib.figure import Figure
 from mpl_toolkits.mplot3d import Axes3D
 
 
@@ -46,13 +47,15 @@ def plot_pcd_three_views(
     """Save three views of the point clouds with the specified titles to the input filename."""
     if sizes is None:
         sizes = [0.5 for i in range(len(pcds))]
-    fig = plt.figure(figsize=(len(pcds) * 3, 9))
+    fig: Figure = plt.figure(figsize=(len(pcds) * 3, 9))
     for i in range(3):
         elev = 30
         azim = -45 + 90 * i
         for j, (pcd, size) in enumerate(zip(pcds, sizes)):
             color = pcd[:, 0]
-            ax = fig.add_subplot(3, len(pcds), i * len(pcds) + j + 1, projection="3d")
+            ax: Axes3D = fig.add_subplot(
+                3, len(pcds), i * len(pcds) + j + 1, projection="3d"
+            )
             ax.view_init(elev, azim)
             ax.scatter(
                 pcd[:, 0],
@@ -76,6 +79,19 @@ def plot_pcd_three_views(
     plt.suptitle(suptitle)
     fig.savefig(filename)
     plt.close(fig)
+
+
+def plot_line_graph(
+    xs: List[List[float]], ys: List[np.ndarray], labels: List[str]
+) -> None:
+    fig: Figure = plt.figure()
+    ax: Axes3D = fig.add_subplot(111)
+    for x, y, label in zip(xs, ys, labels):
+        ax.scatter(x, y, label=label)
+    ax.set_xlabel("Percent Shown")
+    ax.set_ylabel("Distance")
+    ax.set_title("Percentage Shown vs Distance")
+    ax.legend()
 
 
 def show_pcd(points: np.ndarray) -> None:
