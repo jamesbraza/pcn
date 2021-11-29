@@ -25,6 +25,7 @@ SOFTWARE.
 import argparse
 import importlib
 import os
+from typing import Optional
 
 import numpy as np
 import tensorflow as tf
@@ -35,7 +36,7 @@ from io_util import read_pcd, save_pcd
 from visu_util import show_pcd
 
 
-def plot_pcd(ax: Axes3D, pcd: np.ndarray) -> None:
+def plot_pcd(ax: Axes3D, pcd: np.ndarray, title: Optional[str] = None) -> None:
     ax.scatter(
         pcd[:, 0],
         pcd[:, 1],
@@ -51,6 +52,8 @@ def plot_pcd(ax: Axes3D, pcd: np.ndarray) -> None:
     ax.set_xlim(-0.3, 0.3)
     ax.set_ylim(-0.3, 0.3)
     ax.set_zlim(-0.3, 0.3)
+    if title is not None:
+        ax.set_title(title)
 
 
 def parse_args() -> argparse.Namespace:

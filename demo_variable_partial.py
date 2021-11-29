@@ -1,111 +1,83 @@
-"""
-MIT License.
+import libgcc_fix  # isort: skip
 
-Copyright (c) 2018 Wentao Yuan
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-"""
-
-from tensorpack import MapData, dataflow
-import argparse
 import importlib
-import os
+import math
+from typing import List, Optional, Union
 
 import numpy as np
 import tensorflow as tf
 from matplotlib import pyplot as plt
+from matplotlib.figure import Figure
 from mpl_toolkits.mplot3d import Axes3D
+from tensorpack import MapData, dataflow
 
-from data.pcn_data import iter_synset
-from io_util import read_pcd, save_pcd
-from visu_util import show_pcd
+from data.pcn_data import (
+    NUM_GT_POINTS,
+    PCNShapeNetDataset,
+    PointCloudDataEntry,
+    iter_synset,
+)
+from data_util import filter_pcd_by_plane, get_min_max
+from demo import plot_pcd
+from tf_util import chamfer, earth_mover
 
 
-def plot_pcd(ax: Axes3D, pcd: np.ndarray) -> None:
-    ax.scatter(
-        pcd[:, 0],
-        pcd[:, 1],
-        pcd[:, 2],
-        zdir="y",
-        c=pcd[:, 0],
-        s=0.5,
-        cmap="Reds",
-        vmin=-1,
-        vmax=0.5,
+def plot_line_graph(
+    xs: List[List[float]], ys: List[Union[list, np.ndarray]], labels: List[str]
+) -> Figure:
+    fig: Figure = plt.figure()
+    ax: Axes3D = fig.add_subplot(111)
+    for x, y, label in zip(xs, ys, labels):
+        ax.scatter(x, y, label=label)
+    ax.set_xlabel("Percent Shown")
+    ax.set_ylabel("Distance")
+    ax.set_title("Percentage Shown vs Distance")
+    ax.legend()
+    return fig
+
+
+def create_plots(
+    partial: np.ndarray,
+    complete: np.ndarray,
+    ground_truth: np.ndarray,
+    suptitle: Optional[str] = None,
+) -> Figure:
+    fig: Figure = plt.figure(figsize=(8, 4))
+    plot_pcd(
+        fig.add_subplot(131, projection="3d"),
+        partial,
+        title=f"Partial ({partial.shape[0]})",
     )
-    ax.set_axis_off()
-    ax.set_xlim(-0.3, 0.3)
-    ax.set_ylim(-0.3, 0.3)
-    ax.set_zlim(-0.3, 0.3)
-
-
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-i",
-        "--input_path",
-        type=str,
-        default="demo_data/car.pcd",
-        help="path to the input point cloud",
+    plot_pcd(
+        fig.add_subplot(132, projection="3d"),
+        complete,
+        title=f"Completed ({complete.shape[0]})",
     )
-    parser.add_argument(
-        "-o", "--output_path", type=str, help="path to the output directory"
+    plot_pcd(
+        fig.add_subplot(133, projection="3d"),
+        ground_truth,
+        title=f"Ground Truth ({ground_truth.shape[0]})",
     )
-    parser.add_argument(
-        "-m", "--model_type", type=str, default="pcn_cd", help="model type"
+    fig.subplots_adjust(
+        left=0.05, right=0.95, bottom=0.05, top=0.9, wspace=0.1, hspace=0.1
     )
-    parser.add_argument(
-        "-c",
-        "--checkpoint",
-        type=str,
-        default="data/trained_models/pcn_cd",
-        help="path to the checkpoint",
-    )
-    parser.add_argument(
-        "-n",
-        "--num_gt_points",
-        type=int,
-        default=16384,
-        help="number of ground truth points",
-    )
-    return parser.parse_args()
+    if suptitle is not None:
+        fig.suptitle(suptitle)
+    return fig
 
 
-def create_plots(partial: np.ndarray, complete: np.ndarray) -> None:
-    fig = plt.figure(figsize=(8, 4))
-    ax = fig.add_subplot(121, projection="3d")
-    plot_pcd(ax, partial)
-    ax.set_title("Input")
-    ax = fig.add_subplot(122, projection="3d")
-    plot_pcd(ax, complete)
-    ax.set_title("Output")
-    plt.subplots_adjust(left=0, right=1, bottom=0, top=1, wspace=0)
-
-
-def main():
-    args = parse_args()
-
+def main(
+    model_type: str = "pcn_cd",
+    checkpoint: str = "data/trained_models/pcn_cd",
+    output_dir: str = "results",
+) -> None:
     inputs = tf.placeholder(tf.float32, (1, None, 3))
-    gt = tf.placeholder(tf.float32, (1, args.num_gt_points, 3))
+    gt = tf.placeholder(tf.float32, (1, NUM_GT_POINTS, 3))
     npts = tf.placeholder(tf.int32, (1,))
-    model_module = importlib.import_module(".%s" % args.model_type, "models")
+    model_module = importlib.import_module(".%s" % model_type, "models")
     model = model_module.Model(inputs, npts, gt, tf.constant(1.0))
+    cd_op = chamfer(model.outputs, gt)
+    emd_op = earth_mover(model.outputs, gt)
 
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
@@ -113,28 +85,51 @@ def main():
     sess = tf.Session(config=config)
 
     saver = tf.train.Saver()
-    saver.restore(sess, args.checkpoint)
+    saver.restore(sess, checkpoint)
 
-    iter_synset(dataflow.LMDBSerializer.load(PCNShapeNetDataset.get_lmdb_filepath(), shuffle=False), name_substr="9ee32f514a4ee4a043c34c097f2ab3af")
+    df: MapData = dataflow.LMDBSerializer.load(
+        PCNShapeNetDataset.get_lmdb_filepath(), shuffle=False
+    )
+    data_entry: PointCloudDataEntry = next(
+        iter(iter_synset(df, name_substr="9ee32f514a4ee4a043c34c097f2ab3af"))
+    )
 
-    partial = read_pcd(args.input_path)
-    complete = sess.run(
-        model.outputs, feed_dict={inputs: [partial], npts: [partial.shape[0]]}
-    )[0]
-    create_plots(partial, complete)
+    min_max = get_min_max(data_entry.partial, "x")
+    step = 5
+    range_min = math.floor(min_max[0] * 100)
+    range_max = math.ceil(min_max[1] * 100) + step
+    percentages_shown: List[float] = []
+    cds: List[float] = []
+    emds: List[float] = []
+    for threshold in [i / 100 for i in range(range_min, range_max, step)]:
+        partial = filter_pcd_by_plane(data_entry.partial, "x", threshold)
+        if partial.shape[0] <= 0:
+            # Skip analysis if input point cloud is empty
+            continue
+        complete: np.ndarray = sess.run(
+            model.outputs, feed_dict={inputs: [partial], npts: [partial.shape[0]]}
+        )[0]
+        cd, emd = sess.run(
+            [cd_op, emd_op],
+            feed_dict={model.outputs: [complete], gt: [data_entry.ground_truth]},
+        )
 
-    if args.output_path is None:
-        show_pcd(complete)
-        plt.show()
-    else:
-        os.makedirs(args.output_path, exist_ok=True)
-        filename = os.path.splitext(os.path.basename(args.input_path))[0]
+        percent_shown: float = partial.shape[0] / data_entry.partial.shape[0]
+        percentages_shown.append(percent_shown), cds.append(cd), emds.append(emd)
 
-        output_file = os.path.join(args.output_path, filename + ".pcd")
-        save_pcd(output_file, complete)
-
-        output_file = os.path.join(args.output_path, filename + ".png")
-        plt.savefig(output_file)
+        fig_title = (
+            f"Percent Shown: {percent_shown * 100:.1f}%, "
+            f"Chamfer Distance: {cd:.4f}, Earth Mover Distance: {emd:.4f}"
+        )
+        fig = create_plots(
+            partial,
+            complete,
+            data_entry.ground_truth,
+            suptitle=fig_title,
+        )
+        fig.savefig(f"{output_dir}/{fig_title}.png")
+    fig = plot_line_graph([percentages_shown] * 2, [cds, emds], ["CD", "EMD"])
+    fig.savefig(f"{output_dir}/summary.png")
 
 
 if __name__ == "__main__":
