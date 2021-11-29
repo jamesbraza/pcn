@@ -21,7 +21,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from typing import Tuple
+
+import random
+from operator import ge
+from typing import Callable, Optional, Tuple
 
 import numpy as np
 import tensorflow as tf
@@ -37,6 +40,53 @@ def resample_pcd(pcd: np.ndarray, n: int) -> np.ndarray:
         idx = np.concatenate([idx, np.random.randint(num_points, size=n - num_points)])
     # Drop excess points, returning the exact amount requested
     return pcd[idx[:n]]
+
+
+def subsample_pcd(pcd: np.ndarray, num_points: Optional[int] = None) -> np.ndarray:
+    """
+    Subsample a point cloud, specifying how many points to keep or keeping a random amount.
+
+    Args:
+        pcd: Raw input point cloud.
+        num_points: Optional max number of points.
+            If left as None (default): Randomly choose an amount of points to keep.
+
+    Returns:
+        Subsampled point cloud.
+    """
+    if num_points is None:
+        num_points = random.randint(1, pcd.shape[0])
+    return resample_pcd(pcd, num_points)
+
+
+XYZ_TO_IDX = {"x": 0, "y": 1, "z": 2}
+
+
+def filter_pcd_by_plane(
+    pcd: np.ndarray,
+    plane: str,
+    threshold: float = 0.0,
+    op: Callable[[float, float], bool] = ge,
+) -> np.ndarray:
+    """
+    Filter a point cloud based on a plane and an threshold.
+
+    Args:
+        pcd: Raw input point cloud.
+        plane: Plane ("x", "y", or "z") to filter upon.
+        threshold: Threshold to use in the operator.
+        op: Operator to use for comparison.
+
+    Returns:
+        Filtered point cloud.
+    """
+    return pcd[np.where(op(pcd[:, XYZ_TO_IDX[plane]], threshold))]
+
+
+def get_min_max(pcd: np.ndarray, axis: str) -> Tuple[float, float]:
+    """Get the min and max of a point cloud along a given axis."""
+    idx = XYZ_TO_IDX[axis]
+    return pcd.min(axis=0)[idx], pcd.max(axis=0)[idx]
 
 
 class PreprocessData(dataflow.ProxyDataFlow):  # noqa: D101

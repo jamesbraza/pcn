@@ -1,7 +1,9 @@
+import libgcc_fix  # isort: skip
+
 import os
 from enum import Enum
 from os.path import join
-from typing import NamedTuple
+from typing import Iterable, NamedTuple, Optional, Union
 
 import lmdb
 import numpy as np
@@ -17,6 +19,7 @@ from data.shapenet import SynSet
 ABS_PATH_TO_DATASET_FOLDER: str = join(
     os.path.dirname(os.path.abspath(__file__)), "pcn"
 )
+NUM_GT_POINTS: int = 16_384
 
 
 class DataSubset(Enum):
@@ -86,5 +89,22 @@ def direct_interaction(lmdb_path: str) -> None:
             _ = 0  # Debug here
 
 
-if __name__ == "__main__":
+def iter_synset(
+    df_iter: Union[MapData, Iterable[list]],
+    synset: SynSet = SynSet.CAR,
+    name_substr: Optional[str] = None,
+) -> Iterable[PointCloudDataEntry]:
+    """Given a dataflow, yield data entries from the specified SynSet and optionally name."""
+    for data_buffer in df_iter:
+        data_entry = PCNShapeNetDataset.extract_from_data_buffer(data_buffer)
+        if synset.value in data_entry.name:
+            if name_substr is None or name_substr in data_entry.name:
+                yield data_entry
+
+
+def main() -> None:
     dataflow_interaction(lmdb_path=PCNShapeNetDataset.get_lmdb_filepath())
+
+
+if __name__ == "__main__":
+    main()
