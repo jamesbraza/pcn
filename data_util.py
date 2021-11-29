@@ -59,6 +59,9 @@ def subsample_pcd(pcd: np.ndarray, num_points: Optional[int] = None) -> np.ndarr
     return resample_pcd(pcd, num_points)
 
 
+XYZ_TO_IDX = {"x": 0, "y": 1, "z": 2}
+
+
 def filter_pcd_by_plane(
     pcd: np.ndarray,
     plane: str,
@@ -77,12 +80,13 @@ def filter_pcd_by_plane(
     Returns:
         Filtered point cloud.
     """
-    plane_to_idx = {"x": 0, "y": 1, "z": 2}
-    if plane not in plane_to_idx:
-        raise NotImplementedError(
-            f"Filter plane {plane} not in options {list(plane_to_idx.keys())}."
-        )
-    return pcd[np.where(op(pcd[:, plane_to_idx[plane]], threshold))]
+    return pcd[np.where(op(pcd[:, XYZ_TO_IDX[plane]], threshold))]
+
+
+def get_min_max(pcd: np.ndarray, axis: str) -> Tuple[float, float]:
+    """Get the min and max of a point cloud along a given axis."""
+    idx = XYZ_TO_IDX[axis]
+    return pcd.min(axis=0)[idx], pcd.max(axis=0)[idx]
 
 
 class PreprocessData(dataflow.ProxyDataFlow):  # noqa: D101
