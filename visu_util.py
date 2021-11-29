@@ -23,7 +23,7 @@ SOFTWARE.
 """
 
 from copy import deepcopy
-from typing import List, Optional, Sequence
+from typing import List, Optional, Sequence, Union
 
 import numpy as np
 import open3d as o3d
@@ -82,8 +82,8 @@ def plot_pcd_three_views(
 
 
 def plot_line_graph(
-    xs: List[List[float]], ys: List[np.ndarray], labels: List[str]
-) -> None:
+    xs: List[List[float]], ys: List[Union[list, np.ndarray]], labels: List[str]
+) -> Figure:
     fig: Figure = plt.figure()
     ax: Axes3D = fig.add_subplot(111)
     for x, y, label in zip(xs, ys, labels):
@@ -92,6 +92,7 @@ def plot_line_graph(
     ax.set_ylabel("Distance")
     ax.set_title("Percentage Shown vs Distance")
     ax.legend()
+    return fig
 
 
 def show_pcd(points: np.ndarray) -> None:
