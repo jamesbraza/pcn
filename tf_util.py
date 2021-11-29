@@ -68,32 +68,36 @@ def mlp_conv(inputs, layer_dims, bn=None, bn_params=None):
 
 
 def point_maxpool(inputs, npts, keepdims=False):
-    outputs = [
-        tf.reduce_max(f, axis=1, keepdims=keepdims)
-        for f in tf.split(inputs, npts, axis=1)
-    ]
-    return tf.concat(outputs, axis=0)
+    with tf.variable_scope("pointwise_maxpool", reuse=tf.AUTO_REUSE):
+        outputs = [
+            tf.reduce_max(f, axis=1, keepdims=keepdims)
+            for f in tf.split(inputs, npts, axis=1)
+        ]
+        return tf.concat(outputs, axis=0)
 
 
 def point_unpool(inputs, npts):
-    inputs = tf.split(inputs, inputs.shape[0], axis=0)
-    outputs = [tf.tile(f, [1, npts[i], 1]) for i, f in enumerate(inputs)]
-    return tf.concat(outputs, axis=1)
+    with tf.variable_scope("pointwise_unpool", reuse=tf.AUTO_REUSE):
+        inputs = tf.split(inputs, inputs.shape[0], axis=0)
+        outputs = [tf.tile(f, [1, npts[i], 1]) for i, f in enumerate(inputs)]
+        return tf.concat(outputs, axis=1)
 
 
 def chamfer(pcd1: Tensor, pcd2: Tensor) -> Tensor:
-    dist1, _, dist2, __ = tf_nndistance.nn_distance(pcd1, pcd2)
-    dist1 = tf.reduce_mean(tf.sqrt(dist1))
-    dist2 = tf.reduce_mean(tf.sqrt(dist2))
-    return (dist1 + dist2) / 2
+    with tf.variable_scope("chamfer", reuse=tf.AUTO_REUSE):
+        dist1, _, dist2, __ = tf_nndistance.nn_distance(pcd1, pcd2)
+        dist1 = tf.reduce_mean(tf.sqrt(dist1))
+        dist2 = tf.reduce_mean(tf.sqrt(dist2))
+        return (dist1 + dist2) / 2
 
 
 def earth_mover(pcd1, pcd2):
     assert pcd1.shape[1] == pcd2.shape[1]
-    num_points = tf.cast(pcd1.shape[1], tf.float32)
-    match = tf_approxmatch.approx_match(pcd1, pcd2)
-    cost = tf_approxmatch.match_cost(pcd1, pcd2, match)
-    return tf.reduce_mean(cost / num_points)
+    with tf.variable_scope("emd", reuse=tf.AUTO_REUSE):
+        num_points = tf.cast(pcd1.shape[1], tf.float32)
+        match = tf_approxmatch.approx_match(pcd1, pcd2)
+        cost = tf_approxmatch.match_cost(pcd1, pcd2, match)
+        return tf.reduce_mean(cost / num_points)
 
 
 def add_train_summary(name, value):
