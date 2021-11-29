@@ -20,10 +20,11 @@ from tf_util import chamfer, earth_mover
 def main(
     model_type: str = "pcn_cd",
     checkpoint: str = "data/trained_models/pcn_cd",
+    log_dir: str = "log/basic",
 ) -> None:
-    inputs = tf.placeholder(tf.float32, (1, None, 3))
-    gt = tf.placeholder(tf.float32, (1, NUM_GT_POINTS, 3))
-    npts = tf.placeholder(tf.int32, (1,))
+    inputs = tf.placeholder(tf.float32, (1, None, 3), name="partial")
+    gt = tf.placeholder(tf.float32, (1, NUM_GT_POINTS, 3), name="ground_truth")
+    npts = tf.placeholder(tf.int32, (1,), name="num_points")
     model_module = importlib.import_module(".%s" % model_type, "models")
     model = model_module.Model(inputs, npts, gt, tf.constant(1.0))
     cd_fine_op = chamfer(model.outputs, gt)
@@ -57,6 +58,8 @@ def main(
     cd_coarse = sess.run(
         cd_coarse_op, feed_dict={model.coarse: coarse, gt: [data_entry.ground_truth]}
     )
+    writer = tf.summary.FileWriter(log_dir, sess.graph)
+    _ = 0  # Debug here
 
 
 if __name__ == "__main__":
